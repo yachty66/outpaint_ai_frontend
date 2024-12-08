@@ -22,7 +22,7 @@ export default function Page() {
             Turn any image into an expanded masterpiece with AI outpainting.
           </p>
           <p>Simply upload your image and let our AI extend it naturally.</p>
-          <p className="text-sm">You can also use our API for automated image processing.</p>
+          {/* <p className="text-sm">You can also use our API for automated image processing.</p> */}
         </div>
         <ImageUpload />
         <Examples />
