@@ -50,16 +50,20 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch(`${apiUrl}/api/py/upload`, {
+      const response = await fetch("/api/py/upload", {
         method: "POST",
         body: formData,
       });
 
-      const result = await response.json();
-      console.log("Response from Python:", result);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-      if (!result.success) {
-        throw new Error(result.message);
+      const data = await response.json();
+      console.log("Response from Python:", data);
+
+      if (!data.success) {
+        throw new Error(data.message);
       }
     } catch (error) {
       console.error("Upload failed:", error);

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from .outpainting import process_uploaded_image
@@ -10,7 +10,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # In production, replace with your actual domain
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["POST", "GET"],
     allow_headers=["*"],
 )
 
@@ -29,7 +29,4 @@ async def upload_image(file: UploadFile = File(...)):
             "processedImage": f"data:image/png;base64,{base64_image}"
         })
     except Exception as e:
-        return JSONResponse({
-            "success": False,
-            "message": str(e)
-        }, status_code=500)
+        raise HTTPException(status_code=400, detail=str(e))
