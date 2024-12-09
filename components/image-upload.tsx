@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload } from "lucide-react";
+import { Upload, Download } from "lucide-react";
 import Image from "next/image";
 
 export function ImageUpload() {
@@ -96,6 +96,18 @@ export function ImageUpload() {
     }
   };
 
+  const handleDownload = () => {
+    if (!processedImage) return;
+    
+    // Create an anchor element and trigger download
+    const link = document.createElement('a');
+    link.href = processedImage;
+    link.download = 'outpainted-image.png'; // Default filename
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Card className="w-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)] border-0">
       <div className="p-6 flex flex-col items-center gap-3">
@@ -105,14 +117,24 @@ export function ImageUpload() {
         
         <div className="flex flex-col items-center gap-3 w-full">
           {processedImage ? (
-            <div className="relative w-[600px] aspect-square mb-3">
-              <Image
-                src={processedImage}
-                alt="Processed image"
-                fill
-                className="object-contain rounded-lg"
-              />
-            </div>
+            <>
+              <div className="relative w-[600px] aspect-square mb-3">
+                <Image
+                  src={processedImage}
+                  alt="Processed image"
+                  fill
+                  className="object-contain rounded-lg"
+                />
+              </div>
+              <Button
+                variant="outline"
+                className="w-[600px] h-11 border shadow-sm hover:bg-gray-50 text-base"
+                onClick={handleDownload}
+              >
+                <Download className="w-5 h-5 mr-2" />
+                Download Image
+              </Button>
+            </>
           ) : uploadedImage ? (
             <div className="relative w-[600px] aspect-square mb-3">
               <Image
