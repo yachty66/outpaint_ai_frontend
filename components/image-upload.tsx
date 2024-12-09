@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Upload, Download } from "lucide-react";
 import Image from "next/image";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ImageUpload() {
   const [isUploading, setIsUploading] = useState(false);
@@ -22,29 +22,31 @@ export function ImageUpload() {
     if (!file) return;
 
     // Check file extension
-    const validExtensions = ['.jpg', '.jpeg', '.png'];
-    const fileExtension = file.name.toLowerCase().slice(file.name.lastIndexOf('.'));
-    
+    const validExtensions = [".jpg", ".jpeg", ".png"];
+    const fileExtension = file.name
+      .toLowerCase()
+      .slice(file.name.lastIndexOf("."));
+
     if (!validExtensions.includes(fileExtension)) {
-      setError('Please upload a PNG or JPG file');
+      setError("Please upload a PNG or JPG file");
       return;
     }
 
     // Additional MIME type check
-    const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
+    const validTypes = ["image/png", "image/jpeg", "image/jpg"];
     if (!validTypes.includes(file.type)) {
-      setError('Please upload a PNG or JPG file');
+      setError("Please upload a PNG or JPG file");
       return;
     }
 
     setError(null);
     setIsUploading(true);
-    
+
     try {
       const previewUrl = URL.createObjectURL(file);
       setUploadedImage(previewUrl);
       setCurrentFile(file);
-      
+
       const formData = new FormData();
       formData.append("file", file);
 
@@ -71,7 +73,7 @@ export function ImageUpload() {
 
   const handleOutpaint = async () => {
     if (!currentFile) return;
-    
+
     setIsProcessing(true);
     setError(null);
     setCountdown(30); // Start countdown from 45
@@ -93,7 +95,7 @@ export function ImageUpload() {
 
       const response = await fetch(`${apiUrl}/api/py/upload`, {
         method: "POST",
-        body: formData
+        body: formData,
       });
 
       const result = await response.json();
@@ -115,11 +117,11 @@ export function ImageUpload() {
 
   const handleDownload = () => {
     if (!processedImage) return;
-    
+
     // Create an anchor element and trigger download
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = processedImage;
-    link.download = 'outpainted-image.png'; // Default filename
+    link.download = "outpainted-image.png"; // Default filename
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -128,10 +130,8 @@ export function ImageUpload() {
   return (
     <Card className="w-full max-w-[600px] mx-auto bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)] border-0">
       <div className="p-6 flex flex-col items-center gap-3">
-        {error && (
-          <p className="text-red-500 text-sm mb-2">{error}</p>
-        )}
-        
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+
         <div className="flex flex-col items-center gap-3 w-full">
           {processedImage ? (
             <>
@@ -162,7 +162,7 @@ export function ImageUpload() {
               />
             </div>
           ) : (
-            <Button 
+            <Button
               variant="outline"
               className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
               onClick={() => document.getElementById("file-upload")?.click()}
@@ -172,16 +172,16 @@ export function ImageUpload() {
               Upload Image (PNG or JPG)
             </Button>
           )}
-          
-          <Button 
+
+          <Button
             className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-sm sm:text-base"
             disabled={!uploadedImage || isProcessing}
             onClick={handleOutpaint}
           >
-            {isProcessing 
-              ? countdown 
-                ? `Processing... ${countdown}s` 
-                : "Processing..." 
+            {isProcessing
+              ? countdown
+                ? `Processing... ${countdown}s`
+                : "Processing..."
               : "Outpaint"}
           </Button>
         </div>
