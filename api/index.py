@@ -14,6 +14,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/api/py/helloFastApi")
+def hello_fast_api():
+    return {"message": "Hello from FastAPI"}
+
 @app.post("/api/py/upload")
 async def upload_image(file: UploadFile = File(...)):
     try:
