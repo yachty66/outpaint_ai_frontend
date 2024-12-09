@@ -13,9 +13,26 @@ export function ImageUpload() {
     if (!file) return
 
     setIsUploading(true)
-    // Here you would implement the actual image upload and outpainting logic
-    await new Promise((resolve) => setTimeout(resolve, 2000)) // Simulated delay
-    setIsUploading(false)
+    
+    try {
+      const response = await fetch('/api/outpaint', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          test: 'hello'
+        })
+      })
+
+      const result = await response.json()
+      console.log('Response from Python:', result)
+      
+    } catch (error) {
+      console.error('Upload failed:', error)
+    } finally {
+      setIsUploading(false)
+    }
   }
 
   return (

@@ -16,7 +16,7 @@ export function Header() {
             API
           </Link> */}
           <Link 
-            href="https://github.com/yourusername/outpaint-ai" 
+            href="https://github.com/yachty66/outpaint_ai" 
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
             <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current">
