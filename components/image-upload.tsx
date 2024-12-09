@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Upload, Download } from "lucide-react";
 import Image from "next/image";
 
+const apiUrl = process.env.NEXT_PUBLIC_API_URL || '';
+
 export function ImageUpload() {
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -46,7 +48,7 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const response = await fetch("/api/py/upload", {
+      const response = await fetch(`${apiUrl}/api/py/upload`, {
         method: "POST",
         body: formData,
       });
@@ -89,7 +91,7 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", currentFile);
 
-      const response = await fetch("/api/py/upload", {
+      const response = await fetch(`${apiUrl}/api/py/upload`, {
         method: "POST",
         body: formData
       });
