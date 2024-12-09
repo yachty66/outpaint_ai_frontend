@@ -28,7 +28,7 @@ export default function Page() {
         <Examples />
       </main>
       <footer className="py-6 text-center text-sm text-gray-600">
-        Built by{" "}
+        Built with 🚀 by{" "}
         <a href="https://twitter.com/yachty66" className="hover:underline">
           @yachty66
         </a>
