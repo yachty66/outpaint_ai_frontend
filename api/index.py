@@ -1,6 +1,9 @@
 from fastapi import FastAPI
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
+import asyncio
+import base64
+import os
 
 ### Create FastAPI instance with custom docs and openapi url
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")
@@ -14,17 +17,22 @@ def hello_fast_api():
 @app.post("/api/py/upload")
 async def upload_image(file: UploadFile = File(...)):
     try:
-        # Read the file content
-        contents = await file.read()
+        # Read the example image from public directory
+        example_path = os.path.join(os.path.dirname(__file__), '../public/example1.png')
         
-        # Here you would process the image
-        # For now, we'll just return success
+        with open(example_path, 'rb') as f:
+            example_contents = f.read()
+        
+        # Simulate processing time
+        await asyncio.sleep(5)
+        
+        # Convert example image to base64
+        base64_image = base64.b64encode(example_contents).decode('utf-8')
         
         return JSONResponse({
             "success": True,
-            "filename": file.filename,
-            "content_type": file.content_type,
-            "message": "Image received successfully"
+            "message": "Image processed successfully",
+            "processedImage": f"data:image/png;base64,{base64_image}"
         })
     except Exception as e:
         return JSONResponse({

@@ -8,8 +8,11 @@ import Image from "next/image";
 
 export function ImageUpload() {
   const [isUploading, setIsUploading] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+  const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [currentFile, setCurrentFile] = useState<File | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -32,11 +35,13 @@ export function ImageUpload() {
     }
 
     setError(null);
-    const previewUrl = URL.createObjectURL(file);
-    setUploadedImage(previewUrl);
     setIsUploading(true);
-
+    
     try {
+      const previewUrl = URL.createObjectURL(file);
+      setUploadedImage(previewUrl);
+      setCurrentFile(file);
+      
       const formData = new FormData();
       formData.append("file", file);
 
@@ -54,8 +59,40 @@ export function ImageUpload() {
     } catch (error) {
       console.error("Upload failed:", error);
       setUploadedImage(null);
+      setCurrentFile(null);
+      setError("Failed to upload image");
     } finally {
       setIsUploading(false);
+    }
+  };
+
+  const handleOutpaint = async () => {
+    if (!currentFile) return;
+    
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", currentFile);
+
+      const response = await fetch("/api/py/upload", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message);
+      }
+
+      setProcessedImage(result.processedImage);
+    } catch (error) {
+      console.error("Processing failed:", error);
+      setError("Failed to process image");
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -65,32 +102,47 @@ export function ImageUpload() {
         {error && (
           <p className="text-red-500 text-sm mb-2">{error}</p>
         )}
-        {uploadedImage ? (
-          <div className="relative w-[600px] aspect-square mb-3">
-            <Image
-              src={uploadedImage}
-              alt="Uploaded image"
-              fill
-              className="object-contain rounded-lg"
-            />
-          </div>
-        ) : (
+        
+        <div className="flex flex-col items-center gap-3 w-full">
+          {processedImage ? (
+            <div className="relative w-[600px] aspect-square mb-3">
+              <Image
+                src={processedImage}
+                alt="Processed image"
+                fill
+                className="object-contain rounded-lg"
+              />
+            </div>
+          ) : uploadedImage ? (
+            <div className="relative w-[600px] aspect-square mb-3">
+              <Image
+                src={uploadedImage}
+                alt="Uploaded image"
+                fill
+                className="object-contain rounded-lg"
+              />
+            </div>
+          ) : (
+            <Button 
+              variant="outline"
+              className="w-[600px] h-11 border shadow-sm hover:bg-gray-50 text-base"
+              onClick={() => document.getElementById("file-upload")?.click()}
+              disabled={isUploading}
+            >
+              <Upload className="w-5 h-5 mr-2" />
+              Upload Image (PNG or JPG)
+            </Button>
+          )}
+          
           <Button 
-            variant="outline"
-            className="w-[600px] h-11 border shadow-sm hover:bg-gray-50 text-base"
-            onClick={() => document.getElementById("file-upload")?.click()}
-            disabled={isUploading}
+            className="w-[600px] h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-base"
+            disabled={!uploadedImage || isProcessing}
+            onClick={handleOutpaint}
           >
-            <Upload className="w-5 h-5" />
-            Upload Image (PNG or JPG)
+            {isProcessing ? "Processing..." : "Outpaint"}
           </Button>
-        )}
-        <Button 
-          className="w-[600px] h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-base"
-          disabled={isUploading || !uploadedImage}
-        >
-          {isUploading ? "Processing..." : "Outpaint"}
-        </Button>
+        </div>
+
         <input
           id="file-upload"
           type="file"
