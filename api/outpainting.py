@@ -17,37 +17,19 @@ def process_uploaded_image(image_bytes):
         with open(input_path, "wb") as f:
             f.write(image_bytes)
         
-        # Copy base and mask images to temp directory
-        assets_dir = os.path.join(os.path.dirname(__file__), 'assets')
-        base_path = os.path.join(temp_dir, "base.png")
-        mask_path = os.path.join(temp_dir, "mask.png")
+        # Get paths to public assets
+        public_dir = os.path.join(os.path.dirname(__file__), '../public')
+        base_path = os.path.join(public_dir, "base.png")
+        mask_path = os.path.join(public_dir, "mask.png")
         
-        # Create assets directory if it doesn't exist
-        os.makedirs(assets_dir, exist_ok=True)
+        # First resize the input image
+        resized_path = resize_image(input_path)
         
-        # Copy base.png and mask.png from assets directory to temp directory
-        for file in ['base.png', 'mask.png']:
-            src = os.path.join(assets_dir, file)
-            dst = os.path.join(temp_dir, file)
-            
-            # If the source file doesn't exist, create a default one
-            if not os.path.exists(src):
-                # Create a default white 800x800 image for base.png
-                if file == 'base.png':
-                    img = Image.new('RGB', (800, 800), 'white')
-                    img.save(src)
-                # Create a default black 800x800 image for mask.png
-                else:
-                    img = Image.new('RGB', (800, 800), 'black')
-                    img.save(src)
-            
-            # Copy the file to temp directory
-            with open(src, 'rb') as f_src:
-                with open(dst, 'wb') as f_dst:
-                    f_dst.write(f_src.read())
+        # Add resized image to base image
+        combined_path = add_image_to_base(resized_path, base_path)
         
-        # Generate outpainted image
-        output_path = generate_outpaint(input_path, mask_path)
+        # Generate outpainted image using the mask from public directory
+        output_path = generate_outpaint(combined_path, mask_path)
         
         # Read the output image and convert to base64
         with open(output_path, "rb") as f:
@@ -67,10 +49,7 @@ def resize_image(input_image_path):
 
 def add_image_to_base(resized_image_path, base_image_path):
     """Place a resized image in the center of the base image"""
-    # Use the base_image_path that's in the same directory as the resized image
-    base_path = os.path.join(os.path.dirname(resized_image_path), "base.png")
-    
-    with Image.open(base_path) as base_img, Image.open(resized_image_path) as top_img:
+    with Image.open(base_image_path) as base_img, Image.open(resized_image_path) as top_img:
         base_img = base_img.convert('RGBA')
         top_img = top_img.convert('RGBA')
         
@@ -85,12 +64,12 @@ def add_image_to_base(resized_image_path, base_image_path):
         combined.save(output_path)
         return output_path
 
-def generate_outpaint(input_image_path, mask_path, prompt="Extend this image naturally"):
+def generate_outpaint(input_image_path, mask_path, prompt="Extend the image beyond"):
     """Main function to process and outpaint an image"""
     # Resize the input image
     resized_path = resize_image(input_image_path)
     
-    # Add to base image - pass the mask_path's directory base.png
+    # Add to base image
     base_path = os.path.join(os.path.dirname(mask_path), "base.png")
     combined_path = add_image_to_base(resized_path, base_path)
     
@@ -109,9 +88,9 @@ def generate_outpaint(input_image_path, mask_path, prompt="Extend this image nat
         }
     )
     
-    # Download the result - output is now a FileOutput objectS
+    # Download the result
     output_path = os.path.join(os.path.dirname(input_image_path), "output.png")
-    response = requests.get(str(output))  # Convert FileOutput to string to get URL
+    response = requests.get(str(output))
     
     if response.status_code == 200:
         with open(output_path, "wb") as f:
