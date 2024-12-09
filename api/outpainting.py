@@ -63,18 +63,29 @@ def add_image_to_base(resized_image_path, base_image_path):
         combined = combined.convert('RGB')
         combined.save(output_path)
         return output_path
+    
+def save_debug_images(image_dict, debug_dir="debug_images"):
+    """Save multiple debug images to a directory"""
+    # Create debug directory if it doesn't exist
+    os.makedirs(debug_dir, exist_ok=True)
+    
+    # Save each image in the dictionary
+    for name, image_path in image_dict.items():
+        if isinstance(image_path, str) and os.path.exists(image_path):
+            with open(image_path, 'rb') as f:
+                img_data = f.read()
+            with open(os.path.join(debug_dir, f"debug_{name}.png"), "wb") as f:
+                f.write(img_data)
+        elif isinstance(image_path, str) and image_path.startswith('data:image/'):
+            # Handle base64 images
+            img_data = base64.b64decode(image_path.split(',')[1])
+            with open(os.path.join(debug_dir, f"debug_{name}.png"), "wb") as f:
+                f.write(img_data)
 
 def generate_outpaint(input_image_path, mask_path, prompt="Extend the image beyond"):
     """Main function to process and outpaint an image"""
-    # Resize the input image
-    resized_path = resize_image(input_image_path)
-    
-    # Add to base image
-    base_path = os.path.join(os.path.dirname(mask_path), "base.png")
-    combined_path = add_image_to_base(resized_path, base_path)
-    
     # Convert images to base64 for replicate
-    with open(combined_path, "rb") as img_file, open(mask_path, "rb") as mask_file:
+    with open(input_image_path, "rb") as img_file, open(mask_path, "rb") as mask_file:
         img_base64 = base64.b64encode(img_file.read()).decode()
         mask_base64 = base64.b64encode(mask_file.read()).decode()
     
