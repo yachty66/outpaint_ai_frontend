@@ -15,7 +15,7 @@ const geistMono = localFont({
 
 export const metadata: Metadata = {
   title: "StableCharacter",
-  description: "StableCharacter",
+  description: "Extend your images beyond ✨",
 };
 
 export default function RootLayout({
