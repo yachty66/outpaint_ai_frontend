@@ -43,7 +43,7 @@ export function Examples() {
         {examples.map((example) => (
           <Card
             key={example.id}
-            className="group relative bg-white overflow-hidden border-0 shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)]"
+            className="relative bg-white overflow-hidden border-0 shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)]"
           >
             <div className="space-y-2">
               <div className="relative aspect-square">
@@ -61,9 +61,6 @@ export function Examples() {
                   fill
                   className="object-cover"
                 />
-                <div className="absolute inset-0 bg-black/60 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-sm font-medium">
-                  Click to try this style
-                </div>
               </div>
             </div>
           </Card>

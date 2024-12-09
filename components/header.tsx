@@ -6,7 +6,7 @@ export function Header() {
     <header className="border-b border-gray-200">
       <div className="container mx-auto px-4 h-14 flex items-center justify-between">
         <Link href="/" className="font-semibold text-xl">
-          Outpaint<span className="text-orange-500">AI</span>
+          Stable<span className="text-orange-500">Character</span>
         </Link>
         <nav className="flex items-center gap-6 text-sm">
           {/* <Link href="/features" className="text-gray-600 hover:text-gray-900">
