@@ -13,6 +13,7 @@ export function ImageUpload() {
   const [processedImage, setProcessedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
+  const [countdown, setCountdown] = useState<number | null>(null);
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -71,6 +72,18 @@ export function ImageUpload() {
     
     setIsProcessing(true);
     setError(null);
+    setCountdown(30); // Start countdown from 45
+
+    // Set up countdown interval
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(timer);
+          return null;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
     try {
       const formData = new FormData();
@@ -93,6 +106,8 @@ export function ImageUpload() {
       setError("Failed to process image");
     } finally {
       setIsProcessing(false);
+      clearInterval(timer);
+      setCountdown(null);
     }
   };
 
@@ -161,7 +176,11 @@ export function ImageUpload() {
             disabled={!uploadedImage || isProcessing}
             onClick={handleOutpaint}
           >
-            {isProcessing ? "Processing..." : "Outpaint"}
+            {isProcessing 
+              ? countdown 
+                ? `Processing... ${countdown}s` 
+                : "Processing..." 
+              : "Outpaint"}
           </Button>
         </div>
 
