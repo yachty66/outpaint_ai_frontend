@@ -11,7 +11,7 @@ export default function Page() {
         <div className="relative">
           <Star className="absolute -left-16 -top-8 w-12 h-12 text-rose-500 rotate-12" />
           <h1 className="text-4xl sm:text-5xl md:text-[64px] leading-none font-extrabold tracking-tight text-center">
-            StableCharacter
+            AI-powered image
             <br />
             outpainting
           </h1>
