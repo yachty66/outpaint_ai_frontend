@@ -1,8 +1,18 @@
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from .outpainting import process_uploaded_image
 
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # In production, replace with your actual domain
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/api/py/upload")
 async def upload_image(file: UploadFile = File(...)):
