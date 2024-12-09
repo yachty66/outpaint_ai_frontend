@@ -124,7 +124,7 @@ export function ImageUpload() {
   };
 
   return (
-    <Card className="w-full bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)] border-0">
+    <Card className="w-full max-w-[600px] mx-auto bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)] border-0">
       <div className="p-6 flex flex-col items-center gap-3">
         {error && (
           <p className="text-red-500 text-sm mb-2">{error}</p>
@@ -133,7 +133,7 @@ export function ImageUpload() {
         <div className="flex flex-col items-center gap-3 w-full">
           {processedImage ? (
             <>
-              <div className="relative w-[600px] aspect-square mb-3">
+              <div className="relative w-full aspect-square mb-3">
                 <Image
                   src={processedImage}
                   alt="Processed image"
@@ -143,15 +143,15 @@ export function ImageUpload() {
               </div>
               <Button
                 variant="outline"
-                className="w-[600px] h-11 border shadow-sm hover:bg-gray-50 text-base"
+                className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
                 onClick={handleDownload}
               >
-                <Download className="w-5 h-5 mr-2" />
+                <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Download Image
               </Button>
             </>
           ) : uploadedImage ? (
-            <div className="relative w-[600px] aspect-square mb-3">
+            <div className="relative w-full aspect-square mb-3">
               <Image
                 src={uploadedImage}
                 alt="Uploaded image"
@@ -162,17 +162,17 @@ export function ImageUpload() {
           ) : (
             <Button 
               variant="outline"
-              className="w-[600px] h-11 border shadow-sm hover:bg-gray-50 text-base"
+              className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
               onClick={() => document.getElementById("file-upload")?.click()}
               disabled={isUploading}
             >
-              <Upload className="w-5 h-5 mr-2" />
+              <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
               Upload Image (PNG or JPG)
             </Button>
           )}
           
           <Button 
-            className="w-[600px] h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-base"
+            className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-sm sm:text-base"
             disabled={!uploadedImage || isProcessing}
             onClick={handleOutpaint}
           >

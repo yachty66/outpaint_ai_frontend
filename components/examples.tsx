@@ -38,7 +38,7 @@ const examples: Example[] = [
 export function Examples() {
   return (
     <div className="w-full space-y-4">
-      <p className="text-sm text-gray-600">See how our AI expands these images:</p>
+      <p className="text-xs sm:text-sm text-gray-600">See how our AI expands these images:</p>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {examples.map((example) => (
           <Card
