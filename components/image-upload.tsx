@@ -117,7 +117,7 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", currentFile);
 
-      const response = await fetch(`${apiUrl}/api/py/upload`, {
+      const response = await fetch(`http://localhost:8000/api/py/upload`, {
         method: "POST",
         body: formData,
       });
