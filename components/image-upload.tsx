@@ -3,12 +3,15 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Upload, Download } from "lucide-react";
+import { Upload, Download, User } from "lucide-react";
 import Image from "next/image";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ImageUpload() {
+  const { user } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -16,6 +19,23 @@ export function ImageUpload() {
   const [error, setError] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+
+  const handleSignIn = async () => {
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`
+      }
+    });
+  };
+
+  const handleUploadClick = () => {
+    if (!user) {
+      handleSignIn();
+      return;
+    }
+    document.getElementById("file-upload")?.click();
+  };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -131,6 +151,14 @@ export function ImageUpload() {
     document.body.removeChild(link);
   };
 
+  const handleOutpaintClick = () => {
+    if (!user) {
+      handleSignIn();
+      return;
+    }
+    handleOutpaint();
+  };
+
   return (
     <Card className="w-full max-w-[600px] mx-auto bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)] border-0">
       <div className="p-6 flex flex-col items-center gap-3">
@@ -169,24 +197,33 @@ export function ImageUpload() {
             <Button
               variant="outline"
               className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
-              onClick={() => document.getElementById("file-upload")?.click()}
+              onClick={handleUploadClick}
               disabled={isUploading}
             >
-              <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-              Upload Image (PNG or JPG)
+              {!user ? (
+                <>
+                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  Sign in to Upload
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  Upload Image (PNG or JPG)
+                </>
+              )}
             </Button>
           )}
 
           <Button
             className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-sm sm:text-base"
             disabled={!uploadedImage || isProcessing}
-            onClick={handleOutpaint}
+            onClick={handleOutpaintClick}
           >
-            {isProcessing
-              ? countdown
-                ? `Processing... ${countdown}s`
-                : "Processing..."
-              : "Outpaint"}
+            {isProcessing ? (
+              countdown ? `Processing... ${countdown}s` : "Processing..."
+            ) : (
+              "Outpaint"
+            )}
           </Button>
         </div>
 
