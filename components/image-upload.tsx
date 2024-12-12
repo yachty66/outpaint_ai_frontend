@@ -34,7 +34,12 @@ export function ImageUpload() {
       handleSignIn();
       return;
     }
-    document.getElementById("file-upload")?.click();
+    // Reset the file input value
+    const fileInput = document.getElementById("file-upload") as HTMLInputElement;
+    if (fileInput) {
+      fileInput.value = "";
+    }
+    fileInput?.click();
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -63,6 +68,10 @@ export function ImageUpload() {
     setIsUploading(true);
 
     try {
+      // First, clear the processed image
+      setProcessedImage(null);
+      
+      // Then set the new uploaded image
       const previewUrl = URL.createObjectURL(file);
       setUploadedImage(previewUrl);
       setCurrentFile(file);
@@ -176,14 +185,25 @@ export function ImageUpload() {
                   className="object-contain rounded-lg"
                 />
               </div>
-              <Button
-                variant="outline"
-                className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
-                onClick={handleDownload}
-              >
-                <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                Download Image
-              </Button>
+              <div className="flex flex-col w-full gap-3">
+                <Button
+                  variant="outline"
+                  className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
+                  onClick={handleUploadClick}
+                  disabled={isUploading}
+                >
+                  <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  Upload Image (PNG or JPG)
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
+                  onClick={handleDownload}
+                >
+                  <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  Download Image
+                </Button>
+              </div>
             </>
           ) : uploadedImage ? (
             <div className="relative w-full aspect-square mb-3">
