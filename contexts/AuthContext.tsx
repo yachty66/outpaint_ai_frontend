@@ -7,13 +7,20 @@ import type { User } from '@supabase/supabase-js'
 type AuthContextType = {
   user: User | null
   loading: boolean
+  credits: number
+  decrementCredits: () => void
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true })
+const AuthContext = createContext<AuthContextType>({ user: null, loading: true, credits: 5, decrementCredits: () => {} })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const [credits, setCredits] = useState(5)
+
+  const decrementCredits = () => {
+    setCredits((prev) => Math.max(0, prev - 1))
+  }
 
   useEffect(() => {
     // Check active sessions and sets the user
@@ -31,7 +38,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, loading }}>
+    <AuthContext.Provider value={{ user, loading, credits, decrementCredits }}>
       {children}
     </AuthContext.Provider>
   )

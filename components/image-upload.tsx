@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ImageUpload() {
-  const { user } = useAuth();
+  const { user, decrementCredits } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -98,6 +98,7 @@ export function ImageUpload() {
   const handleOutpaint = async () => {
     if (!currentFile) return;
 
+    decrementCredits();
     setIsProcessing(true);
     setError(null);
     setCountdown(30); // Start countdown from 45

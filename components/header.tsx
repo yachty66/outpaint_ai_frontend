@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase"
 import { User, Github } from "lucide-react"
 
 export function Header() {
-  const { user } = useAuth()
+  const { user, credits } = useAuth()
 
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
@@ -41,7 +41,7 @@ export function Header() {
         
         {user ? (
           <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Credits: 5</span>
+            <span className="text-sm text-gray-600">Credits: {credits}</span>
             <Button
               variant="ghost"
               size="sm"
