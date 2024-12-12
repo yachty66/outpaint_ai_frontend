@@ -11,7 +11,7 @@ import { supabase } from "@/lib/supabase";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ImageUpload() {
-  const { user, decrementCredits } = useAuth();
+  const { user, decrementCredits, hasCredits } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -22,10 +22,10 @@ export function ImageUpload() {
 
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
-      provider: 'google',
+      provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
     });
   };
 
@@ -35,7 +35,9 @@ export function ImageUpload() {
       return;
     }
     // Reset the file input value
-    const fileInput = document.getElementById("file-upload") as HTMLInputElement;
+    const fileInput = document.getElementById(
+      "file-upload"
+    ) as HTMLInputElement;
     if (fileInput) {
       fileInput.value = "";
     }
@@ -70,7 +72,7 @@ export function ImageUpload() {
     try {
       // First, clear the processed image
       setProcessedImage(null);
-      
+
       // Then set the new uploaded image
       const previewUrl = URL.createObjectURL(file);
       setUploadedImage(previewUrl);
@@ -104,13 +106,26 @@ export function ImageUpload() {
     }
   };
 
-  const handleOutpaint = async () => {
-    if (!currentFile) return;
+  const handleOutpaintClick = () => {
+    if (!user) {
+      handleSignIn();
+      return;
+    }
 
-    decrementCredits();
+    if (!hasCredits()) {
+      handleStripeCheckout();
+      return;
+    }
+
+    handleOutpaint();
+  };
+
+  const handleOutpaint = async () => {
+    if (!currentFile || !hasCredits()) return;
+
     setIsProcessing(true);
     setError(null);
-    setCountdown(30); // Start countdown from 45
+    setCountdown(30);
 
     // Set up countdown interval
     const timer = setInterval(() => {
@@ -139,6 +154,8 @@ export function ImageUpload() {
       }
 
       setProcessedImage(result.processedImage);
+      // Only decrement credits after successful processing
+      decrementCredits();
     } catch (error) {
       console.error("Processing failed:", error);
       setError("Failed to process image");
@@ -161,12 +178,36 @@ export function ImageUpload() {
     document.body.removeChild(link);
   };
 
-  const handleOutpaintClick = () => {
-    if (!user) {
-      handleSignIn();
-      return;
+  const handleStripeCheckout = async () => {
+    try {
+      console.log('Initiating Stripe checkout...');
+      
+      const response = await fetch("/api/create-checkout-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+
+      console.log('Stripe API Response status:', response.status);
+      
+      const data = await response.json();
+      console.log('Stripe API Response data:', data);
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}, message: ${data.error || 'Unknown error'}`);
+      }
+
+      if (!data.url) {
+        throw new Error('No checkout URL returned from Stripe');
+      }
+
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
+    } catch (error) {
+      console.error("Failed to create checkout session:", error);
+      setError("Failed to initiate checkout");
     }
-    handleOutpaint();
   };
 
   return (
@@ -240,11 +281,11 @@ export function ImageUpload() {
             disabled={!uploadedImage || isProcessing}
             onClick={handleOutpaintClick}
           >
-            {isProcessing ? (
-              countdown ? `Processing... ${countdown}s` : "Processing..."
-            ) : (
-              "Outpaint"
-            )}
+            {isProcessing
+              ? countdown
+                ? `Processing... ${countdown}s`
+                : "Processing..."
+              : "Outpaint"}
           </Button>
         </div>
 

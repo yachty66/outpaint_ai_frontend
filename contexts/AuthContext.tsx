@@ -9,39 +9,44 @@ type AuthContextType = {
   loading: boolean
   credits: number
   decrementCredits: () => void
+  hasCredits: () => boolean
 }
 
-const AuthContext = createContext<AuthContextType>({ user: null, loading: true, credits: 5, decrementCredits: () => {} })
+const AuthContext = createContext<AuthContextType>({ 
+  user: null, 
+  loading: true, 
+  credits: 0,  // Start with 5 credits
+  decrementCredits: () => {}, 
+  hasCredits: () => false 
+})
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [credits, setCredits] = useState(5)
+  const [credits, setCredits] = useState(0)  // Start with 5 credits
 
-  const decrementCredits = () => {
-    setCredits((prev) => Math.max(0, prev - 1))
+  const decrementCredits = async () => {
+    setCredits(prev => Math.max(0, prev - 1));
   }
 
+  const hasCredits = () => credits > 0;
+
   useEffect(() => {
-    // Check active sessions and sets the user
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
 
-    // Listen for changes on auth state
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, credits, decrementCredits }}>
+    <AuthContext.Provider value={{ user, loading, credits, decrementCredits, hasCredits }}>
       {children}
     </AuthContext.Provider>
-  )
+  );
 }
 
-export const useAuth = () => useContext(AuthContext)
+export const useAuth = () => useContext(AuthContext);
