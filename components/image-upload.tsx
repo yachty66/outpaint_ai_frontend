@@ -7,6 +7,7 @@ import { Upload, Download, User } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
+import { PaymentModal } from "@/components/payment-modal";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
@@ -19,6 +20,7 @@ export function ImageUpload() {
   const [error, setError] = useState<string | null>(null);
   const [currentFile, setCurrentFile] = useState<File | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
 
   const handleSignIn = async () => {
     await supabase.auth.signInWithOAuth({
@@ -113,7 +115,7 @@ export function ImageUpload() {
     }
 
     if (!hasCredits()) {
-      handleStripeCheckout();
+      setIsPaymentModalOpen(true);
       return;
     }
 
@@ -298,6 +300,14 @@ export function ImageUpload() {
           disabled={isUploading}
         />
       </div>
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onConfirm={() => {
+          setIsPaymentModalOpen(false);
+          handleStripeCheckout();
+        }}
+      />
     </Card>
   );
 }

@@ -15,7 +15,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.get("origin")}/success`,
+      success_url: `${req.headers.get("origin")}`,
       cancel_url: `${req.headers.get("origin")}`,
     };
 
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Stripe error:", error);
-    const err = error as Stripe.StripeError;
+    const err = error as Stripe.StripeRawError;
     return NextResponse.json(
       { error: err.message },
       { status: 500 }
