@@ -29,26 +29,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadOrCreateUserCredits = async (email: string) => {
     try {
-      // Use upsert to either update existing or insert new
-      const { data, error } = await supabase
+      // First try to get existing user
+      let { data: existingUser, error: fetchError } = await supabase
         .from('users')
-        .upsert(
-          { email: email, credits: 2 },
-          { 
-            onConflict: 'email',  // specify email as the conflict column
-            ignoreDuplicates: false // update if exists
-          }
-        )
         .select('credits')
-        .single()
+        .eq('email', email)
+        .single();
 
-      if (error) throw error
-      return data?.credits ?? 0
+      if (fetchError || !existingUser) {
+        // If user doesn't exist, create new user with 2 initial credits
+        const { data: newUser, error: insertError } = await supabase
+          .from('users')
+          .insert([
+            { email: email, credits: 2 }
+          ])
+          .select('credits')
+          .single();
+
+        if (insertError) throw insertError;
+        return newUser?.credits ?? 0;
+      }
+
+      // Return existing user's credits
+      return existingUser.credits;
     } catch (error) {
-      console.error("Error managing user credits:", error)
-      return 0
+      console.error("Error managing user credits:", error);
+      return 0;
     }
-  }
+  };
 
   const decrementCredits = async () => {
     if (!user?.email) return;
