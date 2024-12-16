@@ -28,13 +28,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [credits, setCredits] = useState(0)
 
   const refreshSession = async () => {
-    const { data: { session } } = await supabase.auth.getSession()
-    if (session?.user) {
-      setUser(session.user)
-      setCredits(60) // Set credits after successful payment
-      setLoading(false) // Ensure loading is set to false
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        setUser(session.user);
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentSuccess = urlParams.get('payment_success');
+        setCredits(paymentSuccess === 'true' ? 60 : 0);
+        setLoading(false);
+      }
+    } catch (error) {
+      console.error("Error refreshing session:", error);
     }
-  }
+  };
 
   const decrementCredits = async () => {
     setCredits(prev => Math.max(0, prev - 1));

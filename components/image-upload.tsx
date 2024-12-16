@@ -182,29 +182,39 @@ export function ImageUpload() {
 
   const handleStripeCheckout = async () => {
     try {
-      console.log('Initiating Stripe checkout...');
+      // Get current session from Supabase
+      const { data: { session } } = await supabase.auth.getSession();
       
+      // Create a state object with relevant auth data
+      const authState = {
+        userId: user?.id,
+        email: user?.email,
+        credits: hasCredits(),
+        sessionId: session?.access_token, // This helps re-authenticate
+        currentPath: window.location.pathname,
+        // Add any other state you want to preserve
+      };
+
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-        }
+          "user-id": user?.id || '',
+        },
+        body: JSON.stringify({
+          authState
+        })
       });
 
-      console.log('Stripe API Response status:', response.status);
-      
       const data = await response.json();
-      console.log('Stripe API Response data:', data);
 
       if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}, message: ${data.error || 'Unknown error'}`);
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      if (!data.url) {
-        throw new Error('No checkout URL returned from Stripe');
-      }
+      // Store state locally before redirect (optional backup)
+      sessionStorage.setItem('pre-checkout-state', JSON.stringify(authState));
 
-      // Redirect to Stripe Checkout
       window.location.href = data.url;
     } catch (error) {
       console.error("Failed to create checkout session:", error);
