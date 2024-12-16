@@ -61,7 +61,8 @@ export function ImageUpload() {
       handleSignIn();
       return;
     }
-    // Reset the file input value
+    
+    // Only reset the file input value
     const fileInput = document.getElementById(
       "file-upload"
     ) as HTMLInputElement;
@@ -74,6 +75,13 @@ export function ImageUpload() {
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    // Reset states only when we actually have a new file
+    setProcessedImage(null);
+    setUploadedImage(null);
+    setCurrentFile(null);
+    setError(null);
+    setIsUploading(true);
 
     // Check file extension
     const validExtensions = [".jpg", ".jpeg", ".png"];
@@ -92,9 +100,6 @@ export function ImageUpload() {
       setError("Please upload a PNG or JPG file");
       return;
     }
-
-    setError(null);
-    setIsUploading(true);
 
     try {
       const formData = new FormData();
