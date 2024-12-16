@@ -22,30 +22,32 @@ export default function SuccessPage() {
         }
 
         const authState = JSON.parse(decodeURIComponent(authStateStr));
-        console.log('Restored auth state:', authState);
+        const { uploadedImage, processedImage } = authState;
 
-        // Try to get an existing session first
+        // Check for existing session
         const { data: { session } } = await supabase.auth.getSession();
-        
+
         if (!session) {
-          // If no session exists, try to sign in again
-          const { error: signInError } = await supabase.auth.signInWithOAuth({
+          // If no session, redirect to sign in with all necessary parameters
+          await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-              redirectTo: `${window.location.origin}/auth/callback?payment_success=true`
+              redirectTo: `${window.location.origin}/auth/callback?payment_success=true&uploadedImage=${encodeURIComponent(uploadedImage || '')}&processedImage=${encodeURIComponent(processedImage || '')}`
             }
           });
-
-          if (signInError) {
-            console.error('Error signing in:', signInError);
-            router.push('/');
-            return;
-          }
-        } else {
-          // If we have a session, just refresh and redirect
-          await refreshSession();
-          router.push('/?payment_success=true');
+          return;
         }
+
+        // If we have a session, refresh it and redirect
+        await refreshSession();
+        
+        const searchParams = new URLSearchParams({
+          payment_success: 'true',
+          ...(uploadedImage && { uploadedImage }),
+          ...(processedImage && { processedImage })
+        });
+
+        router.push(`/?${searchParams.toString()}`);
       } catch (error) {
         console.error('Error restoring session:', error);
         router.push('/');
