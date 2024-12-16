@@ -14,9 +14,10 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     console.log("Email:", authState.email);
     console.log("Full request body:", body);
 
-    const essentialMetadata = {
+    const minimalAuthState = {
       userId: authState.userId,
       email: authState.email,
+      sessionId: authState.sessionId
     };
 
     const sessionConfig: Stripe.Checkout.SessionCreateParams = {
@@ -30,15 +31,14 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       ],
       success_url: `${req.headers.get(
         "origin"
-      )}/success?payment_success=true&authState=${encodeURIComponent(
-        JSON.stringify(authState)
+      )}/success?authState=${encodeURIComponent(
+        JSON.stringify(minimalAuthState)
       )}`,
-      cancel_url: `${req.headers.get(
-        "origin"
-      )}/cancel?payment_canceled=true&authState=${encodeURIComponent(
-        JSON.stringify(authState)
-      )}`,
-      metadata: essentialMetadata,
+      cancel_url: `${req.headers.get("origin")}/cancel`,
+      metadata: {
+        userId: authState.userId,
+        email: authState.email,
+      },
       client_reference_id: authState.userId || undefined,
     };
 
