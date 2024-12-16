@@ -27,24 +27,60 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [credits, setCredits] = useState(0)
 
+  const loadOrCreateUserCredits = async (email: string) => {
+    try {
+      // Use upsert to either update existing or insert new
+      const { data, error } = await supabase
+        .from('users')
+        .upsert(
+          { email: email, credits: 2 },
+          { 
+            onConflict: 'email',  // specify email as the conflict column
+            ignoreDuplicates: false // update if exists
+          }
+        )
+        .select('credits')
+        .single()
+
+      if (error) throw error
+      return data?.credits ?? 0
+    } catch (error) {
+      console.error("Error managing user credits:", error)
+      return 0
+    }
+  }
+
+  const decrementCredits = async () => {
+    if (!user?.email) return
+
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .update({ credits: credits - 1 })
+        .eq('email', user.email)
+        .select('credits')
+        .single()
+
+      if (error) throw error
+      setCredits(data.credits)
+    } catch (error) {
+      console.error("Error decrementing credits:", error)
+    }
+  }
+
   const refreshSession = async () => {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
         setUser(session.user);
-        const urlParams = new URLSearchParams(window.location.search);
-        const paymentSuccess = urlParams.get('payment_success');
-        setCredits(paymentSuccess === 'true' ? 60 : 0);
+        const userCredits = await loadOrCreateUserCredits(session.user.email!)
+        setCredits(userCredits);
         setLoading(false);
       }
     } catch (error) {
       console.error("Error refreshing session:", error);
     }
   };
-
-  const decrementCredits = async () => {
-    setCredits(prev => Math.max(0, prev - 1));
-  }
 
   const hasCredits = () => credits > 0;
 
@@ -55,10 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         
         if (session?.user) {
           setUser(session.user);
-          const urlParams = new URLSearchParams(window.location.search);
-          const paymentSuccess = urlParams.get('payment_success');
-          
-          setCredits(paymentSuccess === 'true' ? 60 : 0);
+          const userCredits = await loadOrCreateUserCredits(session.user.email!)
+          setCredits(userCredits);
         } else {
           setUser(null);
           setCredits(0);
@@ -76,9 +110,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         setUser(session.user);
         if (event === 'SIGNED_IN') {
-          const urlParams = new URLSearchParams(window.location.search);
-          const paymentSuccess = urlParams.get('payment_success');
-          setCredits(paymentSuccess === 'true' ? 60 : 0);
+          const userCredits = await loadOrCreateUserCredits(session.user.email!)
+          setCredits(userCredits);
         }
       } else {
         setUser(null);
