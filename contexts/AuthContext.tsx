@@ -76,7 +76,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (session?.user) {
         setUser(session.user);
         if (event === 'SIGNED_IN') {
-          setCredits(0);
+          const urlParams = new URLSearchParams(window.location.search);
+          const paymentSuccess = urlParams.get('payment_success');
+          setCredits(paymentSuccess === 'true' ? 60 : 0);
         }
       } else {
         setUser(null);

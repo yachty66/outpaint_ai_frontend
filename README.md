@@ -5,9 +5,6 @@
 - after rigorous testing that everything works start a google ads campaign with 10eur daily budget
 - run this for 7 days and see how the results are
 
-
-
 - [ ] as soon user hits < 0 credits and hits outpaint button payment modal which initiatews stripe checkout pops up
 
-
-i think together with a language model i could make a greater outpaint pipeline. one which is really good 
+the
