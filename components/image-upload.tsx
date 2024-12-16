@@ -28,14 +28,21 @@ export function ImageUpload() {
     const processedImageUrl = searchParams.get('processedImage');
     
     console.log('Search params:', Object.fromEntries(searchParams.entries()));
-    console.log('Image URLs from params:', { uploadedImageUrl, processedImageUrl });
     
     if (uploadedImageUrl && uploadedImageUrl !== 'undefined') {
-      console.log('Setting uploaded image:', uploadedImageUrl);
       setUploadedImage(uploadedImageUrl);
+      // Convert the URL back to a File object
+      fetch(uploadedImageUrl)
+        .then(res => res.blob())
+        .then(blob => {
+          const file = new File([blob], "restored-image.png", { type: "image/png" });
+          setCurrentFile(file);
+          console.log("Restored file from URL:", file);
+        })
+        .catch(err => console.error("Error restoring file:", err));
     }
+    
     if (processedImageUrl && processedImageUrl !== 'undefined') {
-      console.log('Setting processed image:', processedImageUrl);
       setProcessedImage(processedImageUrl);
     }
   }, []);
@@ -103,7 +110,7 @@ export function ImageUpload() {
       }
 
       const s3Data = await s3Response.json();
-      
+
       if (!s3Data.success) {
         throw new Error(s3Data.message);
       }
@@ -111,7 +118,6 @@ export function ImageUpload() {
       // Use direct URL
       setUploadedImage(s3Data.url);
       setCurrentFile(file);
-
     } catch (error) {
       console.error("Upload failed:", error);
       setUploadedImage(null);
@@ -137,7 +143,12 @@ export function ImageUpload() {
   };
 
   const handleOutpaint = async () => {
+    console.log("calls function for handle outpaint");
+    console.log("current file", currentFile);
+    console.log("has credits", hasCredits());
     if (!currentFile || !hasCredits()) return;
+    console.log("current file", currentFile);
+    console.log("has credits", hasCredits());
 
     setIsProcessing(true);
     setError(null);
@@ -196,34 +207,37 @@ export function ImageUpload() {
 
   const handleStripeCheckout = async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
       const authState = {
         userId: user?.id,
         email: user?.email,
         credits: hasCredits(),
         sessionId: session?.access_token,
         currentPath: window.location.pathname,
-        uploadedImage: uploadedImage,  // Direct S3 URL
-        processedImage: processedImage // Direct S3 URL
+        uploadedImage: uploadedImage, // Direct S3 URL
+        processedImage: processedImage, // Direct S3 URL
       };
 
       const response = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "user-id": user?.id || '',
+          "user-id": user?.id || "",
         },
         body: JSON.stringify({
-          authState
-        })
+          authState,
+        }),
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
 
       // Store auth state before redirect
-      sessionStorage.setItem('pre-checkout-state', JSON.stringify(authState));
+      sessionStorage.setItem("pre-checkout-state", JSON.stringify(authState));
 
       window.location.href = data.url;
     } catch (error) {
@@ -323,7 +337,7 @@ export function ImageUpload() {
         </div>
       </Card>
 
-      <PaymentModal 
+      <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         onConfirm={() => {
