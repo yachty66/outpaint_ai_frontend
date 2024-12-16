@@ -12,7 +12,7 @@ import { PaymentModal } from "@/components/payment-modal";
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ImageUpload() {
-  const { user, decrementCredits, hasCredits } = useAuth();
+  const { user, decrementCredits, hasCredits, credits } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -181,8 +181,8 @@ export function ImageUpload() {
       }
 
       setProcessedImage(result.processedImage);
-      // Only decrement credits after successful processing
-      decrementCredits();
+      // Decrement credits in Supabase through our context
+      await decrementCredits();
     } catch (error) {
       console.error("Processing failed:", error);
       setError("Failed to process image");
@@ -214,11 +214,11 @@ export function ImageUpload() {
       const authState = {
         userId: user?.id,
         email: user?.email,
-        credits: hasCredits(),
+        credits, // Use credits from context
         sessionId: session?.access_token,
         currentPath: window.location.pathname,
-        uploadedImage: uploadedImage, // Direct S3 URL
-        processedImage: processedImage, // Direct S3 URL
+        uploadedImage: uploadedImage,
+        processedImage: processedImage,
       };
 
       const response = await fetch("/api/create-checkout-session", {
@@ -233,12 +233,9 @@ export function ImageUpload() {
       });
 
       const data = await response.json();
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
 
-      // Store auth state before redirect
       sessionStorage.setItem("pre-checkout-state", JSON.stringify(authState));
-
       window.location.href = data.url;
     } catch (error) {
       console.error("Failed to create checkout session:", error);

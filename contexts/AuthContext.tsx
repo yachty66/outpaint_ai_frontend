@@ -51,22 +51,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const decrementCredits = async () => {
-    if (!user?.email) return
+    if (!user?.email) return;
 
     try {
-      const { data, error } = await supabase
+      // First get current credits
+      const { data: currentData, error: fetchError } = await supabase
         .from('users')
-        .update({ credits: credits - 1 })
+        .select('credits')
+        .eq('email', user.email)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      const currentCredits = currentData?.credits ?? 0;
+      const newCredits = Math.max(0, currentCredits - 1);
+
+      // Update credits in database
+      const { data: updatedData, error: updateError } = await supabase
+        .from('users')
+        .update({ credits: newCredits })
         .eq('email', user.email)
         .select('credits')
-        .single()
+        .single();
 
-      if (error) throw error
-      setCredits(data.credits)
+      if (updateError) throw updateError;
+
+      // Update local state only after successful database update
+      setCredits(updatedData.credits);
+      
+      console.log('Credits updated in database:', updatedData.credits); // Debug log
+      return updatedData.credits;
     } catch (error) {
-      console.error("Error decrementing credits:", error)
+      console.error("Error decrementing credits:", error);
+      return null;
     }
-  }
+  };
 
   const refreshSession = async () => {
     try {
