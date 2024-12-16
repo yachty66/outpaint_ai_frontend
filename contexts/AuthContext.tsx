@@ -10,20 +10,31 @@ type AuthContextType = {
   credits: number
   decrementCredits: () => void
   hasCredits: () => boolean
+  refreshSession: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({ 
   user: null, 
   loading: true, 
-  credits: 0,  // Start with 5 credits
+  credits: 0,
   decrementCredits: () => {}, 
-  hasCredits: () => false 
+  hasCredits: () => false,
+  refreshSession: async () => {}
 })
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
-  const [credits, setCredits] = useState(0)  // Start with 5 credits
+  const [credits, setCredits] = useState(0)
+
+  const refreshSession = async () => {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session?.user) {
+      setUser(session.user)
+      setCredits(60) // Set credits after successful payment
+      setLoading(false) // Ensure loading is set to false
+    }
+  }
 
   const decrementCredits = async () => {
     setCredits(prev => Math.max(0, prev - 1));
@@ -32,9 +43,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasCredits = () => credits > 0;
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+    const initializeAuth = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user) {
+          setUser(session.user);
+          const urlParams = new URLSearchParams(window.location.search);
+          const paymentSuccess = urlParams.get('payment_success');
+          
+          setCredits(paymentSuccess === 'true' ? 60 : 0);
+        } else {
+          setUser(null);
+          setCredits(0);
+        }
+      } catch (error) {
+        console.error("Auth initialization error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session?.user) {
+        setUser(session.user);
+        if (event === 'SIGNED_IN') {
+          setCredits(0);
+        }
+      } else {
+        setUser(null);
+        setCredits(0);
+      }
     });
 
     return () => {
@@ -43,10 +84,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, loading, credits, decrementCredits, hasCredits }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      loading, 
+      credits, 
+      decrementCredits, 
+      hasCredits,
+      refreshSession 
+    }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 }
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => useContext(AuthContext)

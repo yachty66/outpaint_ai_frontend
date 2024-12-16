@@ -15,7 +15,7 @@ export function PaymentModal({ isOpen, onClose, onConfirm }: PaymentModalProps) 
       <Card className="w-full max-w-md mx-4 p-6 bg-white">
         <h2 className="text-xl font-semibold mb-4">Out of Credits</h2>
         <p className="text-gray-600 mb-6">
-          You've run out of credits. Purchase 60 more credits for $4.99 to continue using the service.
+          You've run out of credits. Purchase 50 more credits for $4.99 to continue using the service.
         </p>
         <div className="flex gap-3">
           <Button

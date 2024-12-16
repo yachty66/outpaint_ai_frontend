@@ -15,15 +15,16 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.get("origin")}`,
-      cancel_url: `${req.headers.get("origin")}`,
+      success_url: `${req.headers.get("origin")}?payment_success=true`,
+      cancel_url: `${req.headers.get("origin")}?payment_canceled=true`,
+      client_reference_id: req.headers.get("user-id") || undefined,
     };
 
     const session = await stripe.checkout.sessions.create(sessionConfig);
     return NextResponse.json({ url: session.url });
   } catch (error) {
     console.error("Stripe error:", error);
-    const err = error as Stripe.StripeRawError;
+    const err = error as Stripe.StripeError;
     return NextResponse.json(
       { error: err.message },
       { status: 500 }

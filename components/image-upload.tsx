@@ -213,94 +213,97 @@ export function ImageUpload() {
   };
 
   return (
-    <Card className="w-full max-w-[600px] mx-auto bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)] border-0">
-      <div className="p-6 flex flex-col items-center gap-3">
-        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
+    <>
+      <Card className="w-full max-w-[600px] mx-auto bg-white shadow-[0_2px_4px_rgba(0,0,0,0.1),0_12px_24px_rgba(0,0,0,0.1)] border-0">
+        <div className="p-6 flex flex-col items-center gap-3">
+          {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
-        <div className="flex flex-col items-center gap-3 w-full">
-          {processedImage ? (
-            <>
+          <div className="flex flex-col items-center gap-3 w-full">
+            {processedImage ? (
+              <>
+                <div className="relative w-full aspect-square mb-3">
+                  <Image
+                    src={processedImage}
+                    alt="Processed image"
+                    fill
+                    className="object-contain rounded-lg"
+                  />
+                </div>
+                <div className="flex flex-col w-full gap-3">
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
+                    onClick={handleUploadClick}
+                    disabled={isUploading}
+                  >
+                    <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    Upload Image (PNG or JPG)
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
+                    onClick={handleDownload}
+                  >
+                    <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    Download Image
+                  </Button>
+                </div>
+              </>
+            ) : uploadedImage ? (
               <div className="relative w-full aspect-square mb-3">
                 <Image
-                  src={processedImage}
-                  alt="Processed image"
+                  src={uploadedImage}
+                  alt="Uploaded image"
                   fill
                   className="object-contain rounded-lg"
                 />
               </div>
-              <div className="flex flex-col w-full gap-3">
-                <Button
-                  variant="outline"
-                  className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
-                  onClick={handleUploadClick}
-                  disabled={isUploading}
-                >
-                  <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Upload Image (PNG or JPG)
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
-                  onClick={handleDownload}
-                >
-                  <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Download Image
-                </Button>
-              </div>
-            </>
-          ) : uploadedImage ? (
-            <div className="relative w-full aspect-square mb-3">
-              <Image
-                src={uploadedImage}
-                alt="Uploaded image"
-                fill
-                className="object-contain rounded-lg"
-              />
-            </div>
-          ) : (
+            ) : (
+              <Button
+                variant="outline"
+                className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
+                onClick={handleUploadClick}
+                disabled={isUploading}
+              >
+                {!user ? (
+                  <>
+                    <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    Sign in to Upload
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                    Upload Image (PNG or JPG)
+                  </>
+                )}
+              </Button>
+            )}
+
             <Button
-              variant="outline"
-              className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
-              onClick={handleUploadClick}
-              disabled={isUploading}
+              className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-sm sm:text-base"
+              disabled={!uploadedImage || isProcessing}
+              onClick={handleOutpaintClick}
             >
-              {!user ? (
-                <>
-                  <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Sign in to Upload
-                </>
-              ) : (
-                <>
-                  <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                  Upload Image (PNG or JPG)
-                </>
-              )}
+              {isProcessing
+                ? countdown
+                  ? `Processing... ${countdown}s`
+                  : "Processing..."
+                : "Outpaint"}
             </Button>
-          )}
+          </div>
 
-          <Button
-            className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-sm sm:text-base"
-            disabled={!uploadedImage || isProcessing}
-            onClick={handleOutpaintClick}
-          >
-            {isProcessing
-              ? countdown
-                ? `Processing... ${countdown}s`
-                : "Processing..."
-              : "Outpaint"}
-          </Button>
+          <input
+            id="file-upload"
+            type="file"
+            className="hidden"
+            accept="image/png,image/jpeg,image/jpg"
+            onChange={handleUpload}
+            disabled={isUploading}
+          />
         </div>
+      </Card>
 
-        <input
-          id="file-upload"
-          type="file"
-          className="hidden"
-          accept="image/png,image/jpeg,image/jpg"
-          onChange={handleUpload}
-          disabled={isUploading}
-        />
-      </div>
-      <PaymentModal
+      <PaymentModal 
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
         onConfirm={() => {
@@ -308,6 +311,7 @@ export function ImageUpload() {
           handleStripeCheckout();
         }}
       />
-    </Card>
+    </>
   );
 }
+//4242 4242 4242 4242
