@@ -5,14 +5,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Upload, Download, User } from "lucide-react";
 import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/lib/supabase";
 import { PaymentModal } from "@/components/payment-modal";
+import { useAuth } from "@/lib/AuthContext";
 
 const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
 
 export function ImageUpload() {
-  const { user, decrementCredits, hasCredits, credits } = useAuth();
+  const { user, credits, setCredits } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
@@ -24,25 +24,27 @@ export function ImageUpload() {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
-    const uploadedImageUrl = searchParams.get('uploadedImage');
-    const processedImageUrl = searchParams.get('processedImage');
-    
-    console.log('Search params:', Object.fromEntries(searchParams.entries()));
-    
-    if (uploadedImageUrl && uploadedImageUrl !== 'undefined') {
+    const uploadedImageUrl = searchParams.get("uploadedImage");
+    const processedImageUrl = searchParams.get("processedImage");
+
+    console.log("Search params:", Object.fromEntries(searchParams.entries()));
+
+    if (uploadedImageUrl && uploadedImageUrl !== "undefined") {
       setUploadedImage(uploadedImageUrl);
       // Convert the URL back to a File object
       fetch(uploadedImageUrl)
-        .then(res => res.blob())
-        .then(blob => {
-          const file = new File([blob], "restored-image.png", { type: "image/png" });
+        .then((res) => res.blob())
+        .then((blob) => {
+          const file = new File([blob], "restored-image.png", {
+            type: "image/png",
+          });
           setCurrentFile(file);
           console.log("Restored file from URL:", file);
         })
-        .catch(err => console.error("Error restoring file:", err));
+        .catch((err) => console.error("Error restoring file:", err));
     }
-    
-    if (processedImageUrl && processedImageUrl !== 'undefined') {
+
+    if (processedImageUrl && processedImageUrl !== "undefined") {
       setProcessedImage(processedImageUrl);
     }
   }, []);
@@ -58,12 +60,12 @@ export function ImageUpload() {
       });
 
       if (error) {
-        console.error('Sign in error:', error);
+        console.error("Sign in error:", error);
         throw error;
       }
     } catch (error) {
-      console.error('Failed to initiate sign in:', error);
-      alert('Failed to sign in. Please try again.');
+      console.error("Failed to initiate sign in:", error);
+      alert("Failed to sign in. Please try again.");
     } finally {
       setIsProcessing(false);
     }
@@ -74,7 +76,7 @@ export function ImageUpload() {
       handleSignIn();
       return;
     }
-    
+
     // Only reset the file input value
     const fileInput = document.getElementById(
       "file-upload"
@@ -251,13 +253,30 @@ export function ImageUpload() {
       });
 
       const data = await response.json();
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      if (!response.ok)
+        throw new Error(`HTTP error! status: ${response.status}`);
 
       sessionStorage.setItem("pre-checkout-state", JSON.stringify(authState));
       window.location.href = data.url;
     } catch (error) {
       console.error("Failed to create checkout session:", error);
       setError("Failed to initiate checkout");
+    }
+  };
+
+  const hasCredits = () => credits > 0;
+
+  const decrementCredits = async () => {
+    if (!user) return;
+
+    const newCredits = credits - 1;
+    const { error } = await supabase
+      .from("users")
+      .update({ credits: newCredits })
+      .eq("id", user.id);
+
+    if (!error) {
+      setCredits(newCredits);
     }
   };
 
@@ -317,7 +336,7 @@ export function ImageUpload() {
                 {!user ? (
                   <>
                     <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    {isProcessing ? 'Signing in...' : 'Sign in to Upload'}
+                    {isProcessing ? "Signing in..." : "Sign in to Upload"}
                   </>
                 ) : (
                   <>
