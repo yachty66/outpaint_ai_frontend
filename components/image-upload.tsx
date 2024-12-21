@@ -225,45 +225,6 @@ export function ImageUpload() {
     document.body.removeChild(link);
   };
 
-  const handleStripeCheckout = async () => {
-    try {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      const authState = {
-        userId: user?.id,
-        email: user?.email,
-        credits, // Use credits from context
-        sessionId: session?.access_token,
-        currentPath: window.location.pathname,
-        uploadedImage: uploadedImage,
-        processedImage: processedImage,
-      };
-
-      const response = await fetch("/api/create-checkout-session", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "user-id": user?.id || "",
-        },
-        body: JSON.stringify({
-          authState,
-        }),
-      });
-
-      const data = await response.json();
-      if (!response.ok)
-        throw new Error(`HTTP error! status: ${response.status}`);
-
-      sessionStorage.setItem("pre-checkout-state", JSON.stringify(authState));
-      window.location.href = data.url;
-    } catch (error) {
-      console.error("Failed to create checkout session:", error);
-      setError("Failed to initiate checkout");
-    }
-  };
-
   const hasCredits = () => credits > 0;
 
   const decrementCredits = async () => {
@@ -374,10 +335,8 @@ export function ImageUpload() {
       <PaymentModal
         isOpen={isPaymentModalOpen}
         onClose={() => setIsPaymentModalOpen(false)}
-        onConfirm={() => {
-          setIsPaymentModalOpen(false);
-          handleStripeCheckout();
-        }}
+        uploadedImage={uploadedImage}
+        processedImage={processedImage}
       />
     </>
   );
