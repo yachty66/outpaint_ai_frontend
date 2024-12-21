@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/AuthContext';
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function SuccessPage() {
   const router = useRouter();
@@ -12,45 +12,29 @@ export default function SuccessPage() {
   useEffect(() => {
     const handleSuccess = async () => {
       try {
-        const urlParams = new URLSearchParams(window.location.search);
-        const authStateStr = urlParams.get('authState');
-        
-        if (!authStateStr) {
-          console.error('No auth state found in URL');
-          router.push('/');
-          return;
-        }
+        console.log("Starting success handler");
 
-        const authState = JSON.parse(decodeURIComponent(authStateStr));
-        const { uploadedImage, processedImage } = authState;
+        // Retrieve stored session
+        const storedSession = sessionStorage.getItem("pre-stripe-session");
+        if (storedSession) {
+          const { access_token, refresh_token } = JSON.parse(storedSession);
 
-        // Check for existing session
-        const { data: { session } } = await supabase.auth.getSession();
-
-        if (!session) {
-          // If no session, redirect to sign in with all necessary parameters
-          await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: `${window.location.origin}/auth/callback?payment_success=true&uploadedImage=${encodeURIComponent(uploadedImage || '')}&processedImage=${encodeURIComponent(processedImage || '')}`
-            }
+          // Set the session
+          await supabase.auth.setSession({
+            access_token,
+            refresh_token,
           });
-          return;
+
+          // Clear stored session
+          sessionStorage.removeItem("pre-stripe-session");
         }
 
-        // If we have a session, refresh it and redirect
+        // Refresh the session in auth context to update credits
         await refreshSession();
-        
-        const searchParams = new URLSearchParams({
-          payment_success: 'true',
-          ...(uploadedImage && { uploadedImage }),
-          ...(processedImage && { processedImage })
-        });
-
-        router.push(`/?${searchParams.toString()}`);
+        router.push("/?payment_success=true");
       } catch (error) {
-        console.error('Error restoring session:', error);
-        router.push('/');
+        console.error("Error in success page:", error);
+        router.push("/");
       }
     };
 

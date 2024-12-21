@@ -112,33 +112,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const hasCredits = () => credits > 0;
 
   useEffect(() => {
+    let mounted = true;
+    
     const initializeAuth = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        // Check if we already have a session
+        const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (session?.user) {
+        if (error) throw error;
+        
+        if (session?.user && mounted) {
           setUser(session.user);
-          const userCredits = await loadOrCreateUserCredits(session.user.email!)
-          setCredits(userCredits);
-        } else {
-          setUser(null);
-          setCredits(0);
+          const userCredits = await loadOrCreateUserCredits(session.user.email!);
+          if (mounted) setCredits(userCredits);
         }
       } catch (error) {
         console.error("Auth initialization error:", error);
       } finally {
-        setLoading(false);
+        if (mounted) setLoading(false);
       }
     };
 
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (!mounted) return;
+      
       if (session?.user) {
         setUser(session.user);
         if (event === 'SIGNED_IN') {
-          const userCredits = await loadOrCreateUserCredits(session.user.email!)
-          setCredits(userCredits);
+          const userCredits = await loadOrCreateUserCredits(session.user.email!);
+          if (mounted) setCredits(userCredits);
         }
       } else {
         setUser(null);
@@ -147,6 +151,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);

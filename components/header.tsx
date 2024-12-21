@@ -5,17 +5,36 @@ import { Button } from "@/components/ui/button"
 import { useAuth } from "@/contexts/AuthContext"
 import { supabase } from "@/lib/supabase"
 import { User, Github } from "lucide-react"
+import { useState } from "react"
 
 export function Header() {
   const { user, credits } = useAuth()
+  const [isSigningIn, setIsSigningIn] = useState(false)
 
   const handleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`
-      }
-    })
+    if (isSigningIn) return
+    
+    setIsSigningIn(true)
+    try {
+      const { error, data } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            access_type: 'offline',
+            prompt: 'consent',
+          }
+        }
+      })
+
+      if (error) throw error
+      
+    } catch (error) {
+      console.error('Sign in error:', error)
+      alert('Failed to sign in. Please try again.')
+    } finally {
+      setIsSigningIn(false)
+    }
   }
 
   const handleSignOut = async () => {
@@ -58,9 +77,10 @@ export function Header() {
             size="sm"
             className="gap-2"
             onClick={handleSignIn}
+            disabled={isSigningIn}
           >
             <User className="w-4 h-4" />
-            Sign In
+            {isSigningIn ? 'Signing in...' : 'Sign In'}
           </Button>
         )}
       </div>

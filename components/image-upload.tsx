@@ -48,12 +48,25 @@ export function ImageUpload() {
   }, []);
 
   const handleSignIn = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    setIsProcessing(true);
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+
+      if (error) {
+        console.error('Sign in error:', error);
+        throw error;
+      }
+    } catch (error) {
+      console.error('Failed to initiate sign in:', error);
+      alert('Failed to sign in. Please try again.');
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   const handleUploadClick = () => {
@@ -299,12 +312,12 @@ export function ImageUpload() {
                 variant="outline"
                 className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
                 onClick={handleUploadClick}
-                disabled={isUploading}
+                disabled={isUploading || isProcessing}
               >
                 {!user ? (
                   <>
                     <User className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Sign in to Upload
+                    {isProcessing ? 'Signing in...' : 'Sign in to Upload'}
                   </>
                 ) : (
                   <>

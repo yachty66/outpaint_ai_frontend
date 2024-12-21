@@ -7,4 +7,10 @@
 
 - [ ] as soon user hits < 0 credits and hits outpaint button payment modal which initiatews stripe checkout pops up
 
-the
+sign in works really well.
+
+
+the only thing i can think of making this working is to send 
+
+
+i could start over handling the stripe checkout and the auth properly. 
