@@ -24,14 +24,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [credits, setCredits] = useState(0);
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const restoreSession = async () => {
+      // Check if we need to restore the session
+      const urlParams = new URLSearchParams(window.location.search);
+      const shouldRestore = urlParams.get("restore_session");
+
+      if (shouldRestore) {
+        const savedSession = localStorage.getItem("savedAuthSession");
+        if (savedSession) {
+          try {
+            const session = JSON.parse(savedSession);
+            await supabase.auth.setSession(session);
+            // Clear the saved session after restoration
+            localStorage.removeItem("savedAuthSession");
+          } catch (error) {
+            console.error("Failed to restore session:", error);
+          }
+        }
+      }
+
+      // Get current session
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchUserCredits(session.user.id);
       }
       setLoading(false);
-    });
+    };
+
+    restoreSession();
 
     // Listen for auth changes
     const {

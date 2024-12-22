@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/lib/supabase";
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -27,6 +28,13 @@ export function PaymentModal({
 
       if (!user?.email) {
         throw new Error("User not authenticated");
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (session) {
+        localStorage.setItem("savedAuthSession", JSON.stringify(session));
       }
 
       const response = await fetch("/api/create-checkout-session", {
