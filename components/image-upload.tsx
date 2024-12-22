@@ -104,8 +104,16 @@ export function ImageUpload() {
       .toLowerCase()
       .slice(file.name.lastIndexOf("."));
 
+    // Check for HEIC explicitly
+    if (fileExtension === ".heic") {
+      setError("HEIC files are not supported. Please upload a PNG or JPG file");
+      setIsUploading(false);
+      return;
+    }
+
     if (!validExtensions.includes(fileExtension)) {
       setError("Please upload a PNG or JPG file");
+      setIsUploading(false);
       return;
     }
 
@@ -113,6 +121,7 @@ export function ImageUpload() {
     const validTypes = ["image/png", "image/jpeg", "image/jpg"];
     if (!validTypes.includes(file.type)) {
       setError("Please upload a PNG or JPG file");
+      setIsUploading(false);
       return;
     }
 
@@ -328,7 +337,7 @@ export function ImageUpload() {
             id="file-upload"
             type="file"
             className="hidden"
-            accept="image/png,image/jpeg,image/jpg"
+            accept=".jpg,.jpeg,.png,image/jpeg,image/jpg,image/png"
             onChange={handleUpload}
             disabled={isUploading}
           />
