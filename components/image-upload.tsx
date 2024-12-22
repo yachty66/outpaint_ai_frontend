@@ -228,16 +228,19 @@ export function ImageUpload() {
   const hasCredits = () => credits > 0;
 
   const decrementCredits = async () => {
-    if (!user) return;
+    console.log("decrement credits");
+    if (!user?.email) return;
 
     const newCredits = credits - 1;
     const { error } = await supabase
       .from("users")
       .update({ credits: newCredits })
-      .eq("id", user.id);
+      .eq("email", user.email);
 
     if (!error) {
       setCredits(newCredits);
+    } else {
+      console.error("Failed to decrement credits:", error);
     }
   };
 

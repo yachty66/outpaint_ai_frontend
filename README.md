@@ -14,3 +14,7 @@ the only thing i can think of making this working is to send
 
 
 i could start over handling the stripe checkout and the auth properly. 
+
+
+
+- [ ] when  
