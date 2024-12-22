@@ -58,6 +58,14 @@ export function Header() {
           >
             <Github className="w-5 h-5" />
           </a>
+          {user && (
+            <Link
+              href="/generations"
+              className="text-sm text-gray-600 hover:text-gray-900"
+            >
+              Generations
+            </Link>
+          )}
         </div>
 
         {user ? (
