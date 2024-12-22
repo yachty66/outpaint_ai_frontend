@@ -185,6 +185,7 @@ export function ImageUpload() {
 
   const handleOutpaint = async () => {
     console.log("calls function for handle outpaint");
+
     if (!currentFile || !hasCredits()) return;
 
     setIsProcessing(true);
@@ -207,7 +208,7 @@ export function ImageUpload() {
       formData.append("file", currentFile);
 
       // First get the processed image from Python backend
-      const response = await fetch(`http://localhost:8000/api/py/upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/py/upload`, {
         method: "POST",
         body: formData,
       });

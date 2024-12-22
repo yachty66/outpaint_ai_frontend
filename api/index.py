@@ -20,6 +20,7 @@ def hello_fast_api():
 
 @app.post("/api/py/upload")
 async def upload_image(file: UploadFile = File(...)):
+    #this function is called
     try:
         # Read the uploaded file
         contents = await file.read()
