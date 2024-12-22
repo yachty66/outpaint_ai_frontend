@@ -173,11 +173,7 @@ export function ImageUpload() {
 
   const handleOutpaint = async () => {
     console.log("calls function for handle outpaint");
-    console.log("current file", currentFile);
-    console.log("has credits", hasCredits());
     if (!currentFile || !hasCredits()) return;
-    console.log("current file", currentFile);
-    console.log("has credits", hasCredits());
 
     setIsProcessing(true);
     setError(null);
@@ -198,6 +194,7 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", currentFile);
 
+      // First get the processed image from Python backend
       const response = await fetch(`http://localhost:8000/api/py/upload`, {
         method: "POST",
         body: formData,
@@ -209,8 +206,29 @@ export function ImageUpload() {
         throw new Error(result.message);
       }
 
-      setProcessedImage(result.processedImage);
-      // Decrement credits in Supabase through our context
+      // Convert base64 to blob
+      const base64Response = await fetch(result.processedImage);
+      const blob = await base64Response.blob();
+
+      // Create a new FormData for S3 upload
+      const s3FormData = new FormData();
+      s3FormData.append("file", blob, "outpainted-image.png");
+
+      // Upload to S3
+      const s3Response = await fetch("/api/s3/upload", {
+        method: "POST",
+        body: s3FormData,
+      });
+
+      const s3Data = await s3Response.json();
+
+      if (!s3Data.success) {
+        throw new Error("Failed to upload processed image to S3");
+      }
+
+      // Use the S3 URL for the processed image
+      setProcessedImage(s3Data.url);
+      await saveGeneration(uploadedImage!, s3Data.url);
       await decrementCredits();
     } catch (error) {
       console.error("Processing failed:", error);
@@ -250,6 +268,43 @@ export function ImageUpload() {
       setCredits(newCredits);
     } else {
       console.error("Failed to decrement credits:", error);
+    }
+  };
+
+  const saveGeneration = async (inputUrl: string, outputUrl: string) => {
+    if (!user?.email) return;
+
+    // Get current generations array
+    const { data: userData, error: fetchError } = await supabase
+      .from("users")
+      .select("generations")
+      .eq("email", user.email)
+      .single();
+
+    if (fetchError) {
+      console.error("Error fetching generations:", fetchError);
+      return;
+    }
+
+    // Create new generation entry
+    const newGeneration = {
+      input_image: inputUrl,
+      output_image: outputUrl,
+      created_at: new Date().toISOString(),
+    };
+
+    // Append to existing generations or create new array
+    const currentGenerations = userData.generations || [];
+    const updatedGenerations = [...currentGenerations, newGeneration];
+
+    // Update user's generations
+    const { error: updateError } = await supabase
+      .from("users")
+      .update({ generations: updatedGenerations })
+      .eq("email", user.email);
+
+    if (updateError) {
+      console.error("Error saving generation:", updateError);
     }
   };
 
