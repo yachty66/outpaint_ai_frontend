@@ -40,6 +40,7 @@ export function Header() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    window.dispatchEvent(new Event("userSignedOut"));
     router.push("/");
   };
 

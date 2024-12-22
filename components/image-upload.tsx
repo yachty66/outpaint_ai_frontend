@@ -49,6 +49,18 @@ export function ImageUpload() {
     }
   }, []);
 
+  useEffect(() => {
+    const handleSignOut = () => {
+      setUploadedImage(null);
+      setProcessedImage(null);
+      setCurrentFile(null);
+      setError(null);
+    };
+
+    window.addEventListener("userSignedOut", handleSignOut);
+    return () => window.removeEventListener("userSignedOut", handleSignOut);
+  }, []);
+
   const handleSignIn = async () => {
     setIsProcessing(true);
     try {
