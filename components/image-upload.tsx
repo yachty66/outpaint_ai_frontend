@@ -260,37 +260,7 @@ export function ImageUpload() {
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
           <div className="flex flex-col items-center gap-3 w-full">
-            {processedImage ? (
-              <>
-                <div className="relative w-full aspect-square mb-3">
-                  <Image
-                    src={processedImage}
-                    alt="Processed image"
-                    fill
-                    className="object-contain rounded-lg"
-                  />
-                </div>
-                <div className="flex flex-col w-full gap-3">
-                  <Button
-                    variant="outline"
-                    className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
-                    onClick={handleUploadClick}
-                    disabled={isUploading}
-                  >
-                    <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Upload Image (PNG or JPG)
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
-                    onClick={handleDownload}
-                  >
-                    <Download className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Download Image
-                  </Button>
-                </div>
-              </>
-            ) : uploadedImage ? (
+            {uploadedImage && (
               <div className="relative w-full aspect-square mb-3">
                 <Image
                   src={uploadedImage}
@@ -299,7 +269,9 @@ export function ImageUpload() {
                   className="object-contain rounded-lg"
                 />
               </div>
-            ) : (
+            )}
+
+            <div className="flex flex-col w-full gap-3">
               <Button
                 variant="outline"
                 className="w-full h-11 border shadow-sm hover:bg-gray-50 text-sm sm:text-base"
@@ -314,23 +286,23 @@ export function ImageUpload() {
                 ) : (
                   <>
                     <Upload className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
-                    Upload Image (PNG or JPG)
+                    {isUploading ? "Uploading..." : "Upload Image (PNG or JPG)"}
                   </>
                 )}
               </Button>
-            )}
 
-            <Button
-              className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-sm sm:text-base"
-              disabled={!uploadedImage || isProcessing}
-              onClick={handleOutpaintClick}
-            >
-              {isProcessing
-                ? countdown
-                  ? `Processing... ${countdown}s`
-                  : "Processing..."
-                : "Outpaint"}
-            </Button>
+              <Button
+                className="w-full h-11 bg-orange-50 hover:bg-orange-100 text-orange-900 border border-orange-200 text-sm sm:text-base"
+                disabled={!uploadedImage || isProcessing}
+                onClick={handleOutpaintClick}
+              >
+                {isProcessing
+                  ? countdown
+                    ? `Processing... ${countdown}s`
+                    : "Processing..."
+                  : "Outpaint"}
+              </Button>
+            </div>
           </div>
 
           <input
