@@ -6,10 +6,12 @@ import { supabase } from "@/lib/supabase";
 import { User, Github } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "@/lib/AuthContext";
+import { useRouter } from "next/navigation";
 
 export function Header() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   const { user, credits } = useAuth();
+  const router = useRouter();
 
   const handleSignIn = async () => {
     if (isSigningIn) return;
@@ -38,6 +40,7 @@ export function Header() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
+    router.push("/");
   };
 
   return (
