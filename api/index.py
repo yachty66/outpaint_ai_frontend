@@ -20,14 +20,16 @@ def hello_fast_api():
 
 @app.post("/api/py/upload")
 async def upload_image(file: UploadFile = File(...)):
+    print("uploading image")
     #this function is called
     try:
+        print("reading file")
         # Read the uploaded file
         contents = await file.read()
-        
+        print("file read")
         # Process the image using the outpainting logic
         base64_image = process_uploaded_image(contents)
-        
+
         return JSONResponse({
             "success": True,
             "message": "Image processed successfully",
