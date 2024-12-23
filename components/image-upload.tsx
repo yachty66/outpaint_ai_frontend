@@ -257,16 +257,24 @@ export function ImageUpload() {
     }
   };
 
-  const handleDownload = () => {
-    if (!processedImage) return;
-
-    // Create an anchor element and trigger download
-    const link = document.createElement("a");
-    link.href = processedImage;
-    link.download = "outpainted-image.png"; // Default filename
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  const handleDownload = async () => {
+    if (processedImage) {
+      try {
+        const response = await fetch(processedImage);
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "outpainted-image.png";
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+      } catch (error) {
+        console.error("Download failed:", error);
+        setError("Failed to download image");
+      }
+    }
   };
 
   const hasCredits = () => credits > 0;
@@ -340,6 +348,16 @@ export function ImageUpload() {
                   fill
                   className="object-contain rounded-lg"
                 />
+                {processedImage && (
+                  <Button
+                    onClick={handleDownload}
+                    className="absolute bottom-4 right-4 bg-white hover:bg-gray-100"
+                    size="icon"
+                    variant="outline"
+                  >
+                    <Download className="h-4 w-4" />
+                  </Button>
+                )}
               </div>
             )}
 
