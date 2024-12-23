@@ -208,10 +208,13 @@ export function ImageUpload() {
       formData.append("file", currentFile);
 
       // First get the processed image from Python backend
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/py/upload`, {
-        method: "POST",
-        body: formData,
-      });
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/py/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
 
       const result = await response.json();
 
@@ -239,8 +242,9 @@ export function ImageUpload() {
         throw new Error("Failed to upload processed image to S3");
       }
 
-      // Use the S3 URL for the processed image
+      // First set the processed image, then clear the uploaded image
       setProcessedImage(s3Data.url);
+      setUploadedImage(null);
       await saveGeneration(uploadedImage!, s3Data.url);
       await decrementCredits();
     } catch (error) {
@@ -328,11 +332,11 @@ export function ImageUpload() {
           {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
           <div className="flex flex-col items-center gap-3 w-full">
-            {uploadedImage && (
+            {(uploadedImage || processedImage) && (
               <div className="relative w-full aspect-square mb-3">
                 <Image
-                  src={uploadedImage}
-                  alt="Uploaded image"
+                  src={processedImage || uploadedImage}
+                  alt={processedImage ? "Processed image" : "Uploaded image"}
                   fill
                   className="object-contain rounded-lg"
                 />
