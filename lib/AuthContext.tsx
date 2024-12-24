@@ -80,18 +80,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    const { data, error } = await supabase
+    // First try to get existing user
+    const { data: existingUser, error: fetchError } = await supabase
       .from("users")
       .select("credits")
       .eq("email", user.email)
       .single();
 
-    console.log("fetch user credits data", data);
-    console.log("fetch user credits error", error);
-    console.log("fetch user credits email", user.email);
+    if (fetchError || !existingUser) {
+      // User doesn't exist, create new user with default credits
+      const { error: createError } = await supabase.from("users").insert([
+        {
+          email: user.email,
+          credits: 2, // Default credits for new users
+        },
+      ]);
 
-    if (!error && data) {
-      setCredits(data.credits);
+      if (createError) {
+        console.error("Error creating new user:", createError);
+      } else {
+        setCredits(2);
+      }
+    } else {
+      // Existing user found, set their credits
+      setCredits(existingUser.credits);
     }
   };
 

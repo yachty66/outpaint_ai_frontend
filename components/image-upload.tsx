@@ -25,8 +25,6 @@ export function ImageUpload() {
     const uploadedImageUrl = searchParams.get("uploadedImage");
     const processedImageUrl = searchParams.get("processedImage");
 
-    console.log("Search params:", Object.fromEntries(searchParams.entries()));
-
     if (uploadedImageUrl && uploadedImageUrl !== "undefined") {
       setUploadedImage(uploadedImageUrl);
       // Convert the URL back to a File object
@@ -37,7 +35,6 @@ export function ImageUpload() {
             type: "image/png",
           });
           setCurrentFile(file);
-          console.log("Restored file from URL:", file);
         })
         .catch((err) => console.error("Error restoring file:", err));
     }
@@ -203,7 +200,6 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", currentFile);
 
-      console.log("Sending request to FastAPI...");
 
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/py/upload`,
@@ -213,11 +209,6 @@ export function ImageUpload() {
         }
       );
       const result = await response.json();
-      console.log("Response from FastAPI:", result);
-
-      // const result = await response.json();
-      // const result = await response.json();
-
 
       if (!response.ok) {
         const errorText = await response.text();
@@ -231,12 +222,7 @@ export function ImageUpload() {
         );
       }
 
-      console.log("Received response from FastAPI:", {
-        success: result.success,
-        message: result.message,
-        processedImageLength: result.processedImage?.length,
-        processedImageStart: result.processedImage?.substring(0, 100) + "...",
-      });
+      
 
       if (!result.success) {
         throw new Error(result.message);
@@ -284,7 +270,6 @@ export function ImageUpload() {
   const hasCredits = () => credits > 0;
 
   const decrementCredits = async () => {
-    console.log("decrement credits");
     if (!user?.email) return;
 
     const newCredits = credits - 1;

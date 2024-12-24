@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { supabase } from "@/lib/supabase";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY_LIVE!, {
   apiVersion: "2024-11-20.acacia",
 });
 
@@ -18,7 +18,7 @@ export async function POST(request: Request) {
       event = stripe.webhooks.constructEvent(
         body,
         signature,
-        process.env.STRIPE_WEBHOOK_SECRET_TEST! // Add this to your env variables
+        process.env.STRIPE_WEBHOOK_SECRET_LIVE! // Add this to your env variables
       );
     } catch (err) {
       console.error("Webhook signature verification failed:", err);
@@ -43,8 +43,6 @@ export async function POST(request: Request) {
         console.error("Supabase update error:", error);
         throw error;
       }
-
-      console.log(`Added 50 credits for ${customerEmail}`);
     }
 
     return NextResponse.json({ received: true });
