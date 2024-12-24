@@ -15,7 +15,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "StableCharacter",
+  title: "Outpainting AI",
   description: "Extend your images beyond ✨",
 };
 

@@ -6,13 +6,13 @@ from .outpainting import process_uploaded_image
 app = FastAPI(docs_url="/api/py/docs", openapi_url="/api/py/openapi.json")
 
 # Add CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Your frontend URL
-    allow_credentials=True,
-    allow_methods=["*"],  # Allows all methods
-    allow_headers=["*"],  # Allows all headers
-)
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=["*"],  # In production, replace with your actual domain
+#     allow_credentials=True,
+#     allow_methods=["POST", "GET"],
+#     allow_headers=["*"],
+# )
 
 @app.get("/api/py/helloFastApi")
 def hello_fast_api():
@@ -20,16 +20,13 @@ def hello_fast_api():
 
 @app.post("/api/py/upload")
 async def upload_image(file: UploadFile = File(...)):
-    print("uploading image")
-    #this function is called
     try:
-        print("reading file")
         # Read the uploaded file
         contents = await file.read()
-        print("file read")
+        
         # Process the image using the outpainting logic
         base64_image = process_uploaded_image(contents)
-
+        
         return JSONResponse({
             "success": True,
             "message": "Image processed successfully",

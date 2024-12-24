@@ -1,7 +1,7 @@
-import { ImageUpload } from "@/components/image-upload"
-import { Header } from "@/components/header"
-import { Examples } from "@/components/examples"
-import { Star } from 'lucide-react'
+import { ImageUpload } from "@/components/image-upload";
+import { Header } from "@/components/header";
+import { Examples } from "@/components/examples";
+import { Star } from "lucide-react";
 
 export default function Page() {
   return (
@@ -21,7 +21,9 @@ export default function Page() {
           <p className="text-base sm:text-lg">
             Turn any image into an expanded masterpiece with AI outpainting.
           </p>
-          <p className="text-sm sm:text-base">Simply upload your image and let our AI extend it naturally.</p>
+          <p className="text-sm sm:text-base">
+            Simply upload your image and let our AI extend it naturally.
+          </p>
           {/* <p className="text-sm">You can also use our API for automated image processing.</p> */}
         </div>
         <ImageUpload />
@@ -38,5 +40,5 @@ export default function Page() {
         </a>
       </footer>
     </div>
-  )
+  );
 }

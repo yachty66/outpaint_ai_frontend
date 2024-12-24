@@ -7,26 +7,21 @@ import base64
 from io import BytesIO
 import requests
 from dotenv import load_dotenv
+import os
 
 # Load environment variables from .env file
 load_dotenv()
 
-# Get the API token from environment variables
-replicate_api_token = os.getenv('REPLICATE_API_TOKEN')
-if not replicate_api_token:
-    raise ValueError("REPLICATE_API_TOKEN not found in environment variables")
-
-os.environ["REPLICATE_API_TOKEN"] = replicate_api_token
+# Get API URL from environment variable
+os.environ["REPLICATE_API_TOKEN"] = os.getenv('REPLICATE_API_TOKEN')
 
 def process_uploaded_image(image_bytes):
-    print("processing uploaded image")
     """Process an uploaded image from bytes"""
     with tempfile.TemporaryDirectory() as temp_dir:
         # Save the uploaded image
         input_path = os.path.join(temp_dir, "input.png")
         with open(input_path, "wb") as f:
             f.write(image_bytes)
-        print("image saved")
         
         # Get paths to public assets
         public_dir = os.path.join(os.path.dirname(__file__), '../public')
@@ -35,19 +30,18 @@ def process_uploaded_image(image_bytes):
         
         # First resize the input image
         resized_path = resize_image(input_path)
-        print("image resized")
+        
         # Add resized image to base image
         combined_path = add_image_to_base(resized_path, base_path)
-        print("image added to base")
+        
         # Generate outpainted image using the mask from public directory
         output_path = generate_outpaint(combined_path, mask_path)
-        print("image generated")
+        
         # Read the output image and convert to base64
         with open(output_path, "rb") as f:
             output_bytes = f.read()
             base64_image = base64.b64encode(output_bytes).decode('utf-8')
-        print("image processed", base64_image)
-        print("returning response base64 image")
+            
         return base64_image
 
 def resize_image(input_image_path):
@@ -96,25 +90,21 @@ def save_debug_images(image_dict, debug_dir="debug_images"):
 
 def generate_outpaint(input_image_path, mask_path, prompt="fill the image"):
     """Main function to process and outpaint an image"""
-    print("generating outpaint")
     # Convert images to base64 for replicate
     with open(input_image_path, "rb") as img_file, open(mask_path, "rb") as mask_file:
         img_base64 = base64.b64encode(img_file.read()).decode()
         mask_base64 = base64.b64encode(mask_file.read()).decode()
-        print("opened images")
+    
     # Setup replicate input and run the model
-    try:
-        output = replicate.run(
-            "black-forest-labs/flux-fill-pro",
-            input={
-                "image": f"data:image/png;base64,{img_base64}",
-                "mask": f"data:image/png;base64,{mask_base64}",
-                "prompt": prompt
-            }
-        )
-        print("outpaint generated", output)
-    except Exception as e:
-        raise Exception("Failed to generate outpaint", e)
+    output = replicate.run(
+        "black-forest-labs/flux-fill-pro",
+        input={
+            "image": f"data:image/png;base64,{img_base64}",
+            "mask": f"data:image/png;base64,{mask_base64}",
+            "prompt": prompt
+        }
+    )
+    
     # Download the result
     output_path = os.path.join(os.path.dirname(input_image_path), "output.png")
     response = requests.get(str(output))

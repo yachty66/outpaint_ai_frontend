@@ -9,8 +9,6 @@ import { supabase } from "@/lib/supabase";
 import { PaymentModal } from "@/components/payment-modal";
 import { useAuth } from "@/lib/AuthContext";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL || "";
-
 export function ImageUpload() {
   const { user, credits, setCredits } = useAuth();
   const [isUploading, setIsUploading] = useState(false);
@@ -184,8 +182,6 @@ export function ImageUpload() {
   };
 
   const handleOutpaint = async () => {
-    console.log("calls function for handle outpaint");
-
     if (!currentFile || !hasCredits()) return;
 
     setIsProcessing(true);
@@ -207,7 +203,8 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", currentFile);
 
-      // First get the processed image from Python backend
+      console.log("Sending request to FastAPI...");
+
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/py/upload`,
         {
@@ -215,41 +212,48 @@ export function ImageUpload() {
           body: formData,
         }
       );
-
       const result = await response.json();
+      console.log("Response from FastAPI:", result);
+
+      // const result = await response.json();
+      // const result = await response.json();
+
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error("FastAPI Error:", {
+          status: response.status,
+          statusText: response.statusText,
+          body: errorText,
+        });
+        throw new Error(
+          `FastAPI request failed: ${response.status} ${response.statusText}`
+        );
+      }
+
+      console.log("Received response from FastAPI:", {
+        success: result.success,
+        message: result.message,
+        processedImageLength: result.processedImage?.length,
+        processedImageStart: result.processedImage?.substring(0, 100) + "...",
+      });
 
       if (!result.success) {
         throw new Error(result.message);
       }
 
-      // Convert base64 to blob
-      const base64Response = await fetch(result.processedImage);
-      const blob = await base64Response.blob();
-
-      // Create a new FormData for S3 upload
-      const s3FormData = new FormData();
-      s3FormData.append("file", blob, "outpainted-image.png");
-
-      // Upload to S3
-      const s3Response = await fetch("/api/s3/upload", {
-        method: "POST",
-        body: s3FormData,
-      });
-
-      const s3Data = await s3Response.json();
-
-      if (!s3Data.success) {
-        throw new Error("Failed to upload processed image to S3");
-      }
-
-      // First set the processed image, then clear the uploaded image
-      setProcessedImage(s3Data.url);
+      // Store the processed image directly
+      setProcessedImage(result.processedImage);
       setUploadedImage(null);
-      await saveGeneration(uploadedImage!, s3Data.url);
+
+      // Save the generation and decrement credits after successful processing
+      await saveGeneration(uploadedImage!, result.processedImage);
       await decrementCredits();
     } catch (error) {
       console.error("Processing failed:", error);
-      setError("Failed to process image");
+      setError(
+        error instanceof Error ? error.message : "Failed to process image"
+      );
     } finally {
       setIsProcessing(false);
       clearInterval(timer);
@@ -343,7 +347,7 @@ export function ImageUpload() {
             {(uploadedImage || processedImage) && (
               <div className="relative w-full aspect-square mb-3">
                 <Image
-                  src={processedImage || uploadedImage}
+                  src={processedImage || uploadedImage || ""}
                   alt={processedImage ? "Processed image" : "Uploaded image"}
                   fill
                   className="object-contain rounded-lg"
