@@ -50,17 +50,20 @@ export function Header() {
         <div className="flex items-center gap-6">
           <Link
             href="/"
-            className="font-semibold text-orange-500 hover:text-orange-600 transition-colors"
+            className="text-xl sm:text-2xl font-semibold transition-colors"
           >
-            StableCharacter
+            <span className="text-orange-500 hover:text-orange-600">
+              Outpainting
+            </span>
+            <span className="text-gray-900">AI</span>
           </Link>
           <a
-            href="https://github.com/yachty66/outpaint_ai_frontend"
+            href="https://github.com/yachty66/outpaintingai"
             target="_blank"
             rel="noopener noreferrer"
             className="text-gray-600 hover:text-gray-900"
           >
-            <Github className="w-5 h-5" />
+            <Github className="w-6 h-6" />
           </a>
           {user && (
             <Link
@@ -88,12 +91,12 @@ export function Header() {
         ) : (
           <Button
             variant="outline"
-            size="sm"
-            className="gap-2"
+            size="default"
+            className="gap-2 text-base"
             onClick={handleSignIn}
             disabled={isSigningIn}
           >
-            <User className="w-4 h-4" />
+            <User className="w-5 h-5" />
             {isSigningIn ? "Signing in..." : "Sign In"}
           </Button>
         )}
