@@ -185,7 +185,6 @@ export function ImageUpload() {
     setError(null);
     setCountdown(30);
 
-    // Set up countdown interval
     const timer = setInterval(() => {
       setCountdown((prev) => {
         if (prev === null || prev <= 1) {
@@ -200,7 +199,6 @@ export function ImageUpload() {
       const formData = new FormData();
       formData.append("file", currentFile);
 
-
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/py/upload`,
         {
@@ -211,29 +209,37 @@ export function ImageUpload() {
       const result = await response.json();
 
       if (!response.ok) {
-        const errorText = await response.text();
-        console.error("FastAPI Error:", {
-          status: response.status,
-          statusText: response.statusText,
-          body: errorText,
-        });
         throw new Error(
           `FastAPI request failed: ${response.status} ${response.statusText}`
         );
       }
 
-      
-
       if (!result.success) {
         throw new Error(result.message);
       }
 
-      // Store the processed image directly
-      setProcessedImage(result.processedImage);
+      // Upload the processed base64 image to S3
+      const s3Response = await fetch("/api/s3/upload", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          base64Image: result.processedImage,
+        }),
+      });
+
+      const s3Data = await s3Response.json();
+      if (!s3Data.success) {
+        throw new Error("Failed to upload processed image to S3");
+      }
+
+      // Store the S3 URL instead of base64
+      setProcessedImage(s3Data.url);
       setUploadedImage(null);
 
-      // Save the generation and decrement credits after successful processing
-      await saveGeneration(uploadedImage!, result.processedImage);
+      // Save the generation with S3 URLs
+      await saveGeneration(uploadedImage!, s3Data.url);
       await decrementCredits();
     } catch (error) {
       console.error("Processing failed:", error);
