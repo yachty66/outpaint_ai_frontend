@@ -256,7 +256,19 @@ export function ImageUpload() {
   const handleDownload = async () => {
     if (processedImage) {
       try {
-        const response = await fetch(processedImage);
+        // Fetch through our own API to avoid CORS issues
+        const response = await fetch("/api/s3/download", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ url: processedImage }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to download image");
+        }
+
         const blob = await response.blob();
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
