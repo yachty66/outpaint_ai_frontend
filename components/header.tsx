@@ -75,31 +75,41 @@ export function Header() {
           )}
         </div>
 
-        {user ? (
-          <div className="flex items-center gap-4">
-            <span className="text-sm text-gray-600">Credits: {credits}</span>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="gap-2"
-              onClick={handleSignOut}
-            >
-              <User className="w-4 h-4" />
-              Sign Out
-            </Button>
-          </div>
-        ) : (
+        <div className="flex items-center gap-4">
           <Button
             variant="outline"
             size="default"
             className="gap-2 text-base"
-            onClick={handleSignIn}
-            disabled={isSigningIn}
+            asChild
           >
-            <User className="w-5 h-5" />
-            {isSigningIn ? "Signing in..." : "Sign In"}
+            <a href="mailto:maxhager28@gmail.com">Support</a>
           </Button>
-        )}
+          {user ? (
+            <div className="flex items-center gap-4">
+              <span className="text-sm text-gray-600">Credits: {credits}</span>
+              <Button
+                variant="ghost"
+                size="default"
+                className="gap-2 text-base"
+                onClick={handleSignOut}
+              >
+                <User className="w-5 h-5" />
+                Sign Out
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="default"
+              className="gap-2 text-base"
+              onClick={handleSignIn}
+              disabled={isSigningIn}
+            >
+              <User className="w-5 h-5" />
+              {isSigningIn ? "Signing in..." : "Sign In"}
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );
